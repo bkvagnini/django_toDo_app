@@ -1,9 +1,10 @@
 <h3> ToDo</h3>
 <form method = "POST" action = "/">
-    {% csrf_token %} #this is important
+   {% csrf_token %} <!-- this is important -->
     <!-- {{form}} --><!-- brings in all fields -->
-    {{form.title}}<!-- brings in just the task field -->
-    <input type = "submit" name = "Create Task" />
+    <p> <strong>Add Task: </strong>
+    {{form.title}} <!-- brings in just the task field -->
+    <input type = "submit" name = "Create Task" /> </p>
 </form>
 
 {% for task in tasks %}
