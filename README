@@ -1,0 +1,165 @@
+#From "To Do App Django 3.0.mp4 video"
+>Create Virtual Environment
+python3 -m venv <environment name> (e.g python3 -m venv .django)
+
+>Activate virtual environment
+source .<environment name>/bin/activate
+
+>Install Django
+pip install django=3.2.3
+(or for a new dev machine - pip install -r requirements.txt)
+
+>Create project
+django-admin startproject <project name> (e.g. django-admin startproject todo)
+
+>Run the server to verify it's working
+python manage.py runserver
+check localhost:8000 in browser
+
+>Create Database (SQLite3 by default)
+python manage.py migrate
+
+>Create first user
+python manage.py createsuperuser
+For test purposes, AppAdmin : my new standard secure pw : brian@vagnini.net
+
+>Create app 
+python manage.py startapp tasks
+
+>Update settings.py file (Installed Apps section)
+   'tasks',
+
+>Update views.py in tasks
+from django.http import HttpResponse 
+
+def index(request):
+    return HttpResponse('sup bitches?')
+
+>Create a urls.py file in tasks
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.index)
+]
+
+Update urls.py in main project folder (todo)
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('tasks.urls'))
+
+]
+
+>Check the server again
+check localhost:8000 in browser
+
+>Create templates folder inside of app folder
+create subfolder
+create an html file (e.g. list.html)
+(tasks > templates > tasks > list.html) 
+
+>Add content to list.html
+<h3>ToDo</h3>
+
+>Update views.py - (9:35/41:13)
+def index(request):
+    #return HttpResponse('sup bitches?')
+    return render(request, 'tasks/list.html')
+
+>Create Database (models.py)
+class Task(models.Model):
+    title = models.CharField(max_length=200)
+    complete = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+>Run Migrations to add new DB/DB fields into the app
+python manage.py makemigrations
+then 
+python manage.py migrate (this creates a db.sqlite3 file - this is your actual database)
+
+> Register the model in admin.py
+from .models import *
+
+admin.site.register(Task)
+
+(Add a couple of tasks via the admin panel, so we have some sample data)
+
+>Render the data out in te view (views.py)
+from django.shortcuts import render
+from django.http import HttpResponse 
+
+from .models import *
+
+def index(request):
+    #return HttpResponse('sup bitches?')
+    tasks = Task.objects.all()
+
+    context = {'tasks': tasks}
+    return render(request, 'tasks/list.html', context)
+
+>Update the list.html file
+<h3> ToDo</h3>
+
+% for task in tasks %
+    <div>
+        <p>{{task}}</p>
+    </div>
+{% endfor %}    
+
+
+>In the app (tasks) create a file (forms.py) (16:00/41:13)
+from django import forms
+from django.forms import ModelForm
+
+from .models import *
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = '__all__'
+
+>Edit views.py to include the form
+from django.shortcuts import render
+from django.http import HttpResponse 
+
+from .models import *
+from .forms import * # this is new
+
+def index(request):
+    #return HttpResponse('sup bitches?')
+    tasks = Task.objects.all()
+
+    form = TaskForm()#this is new
+
+    context = {'tasks': tasks, 'form': form} #add the form section
+    return render(request, 'tasks/list.html', context)
+
+>Edit the List.html
+<form method = "POST" action = "/">
+    <!-- {{form}} --><!-- brings in all fields -->
+    {{form.title}}<!-- brings in just the task field -->
+    <input type = "submit" name = "Create Task" />
+</form>
+
+> Edit views.py
+form = TaskForm()#this is new
+    #for POST methods
+    if request.method == "POST":
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            form.save()
+        return redirect('/')
+
+    context = {'tasks': tasks, 'form': form} #add the form section
+    return render(request, 'tasks/list.html', context)
+
+>Edit list.html to add a CSRF token (21:39/41:13) - adding a ToDo works correctly
+<form method = "POST" action = "/">
+    {% csrf_token %}
+    <!-- {{form}} --><!-- brings in all fields -->
+    {{form.title}}<!-- brings in just the task field --
