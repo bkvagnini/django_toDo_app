@@ -9,6 +9,7 @@
 
 {% for task in tasks %}
     <div>
-        <p>{{task}}</p>
+        <p><a href = "{% url 'update_task' task.id %}">Update</a> <!-- this is new -->
+        {{task}}</p>
     </div>
 {% endfor %}

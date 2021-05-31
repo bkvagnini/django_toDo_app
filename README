@@ -163,3 +163,71 @@ form = TaskForm()#this is new
     {% csrf_token %}
     <!-- {{form}} --><!-- brings in all fields -->
     {{form.title}}<!-- brings in just the task field --
+
+
+>Adding Edit functionality to the task
+1 - create a new html template under tasks (called update_task.html)
+<h3>Update Task </h3>
+
+<form>
+
+    <input tyoe = "submit" name = "Update Task" />
+</form>
+
+2 - update views.py 
+def updateTask(request, pk):
+    task = Task.objects.get(id=pk)
+    
+    return render(request, 'tasks/update_task.html')
+
+3 - update app/urls/py (tasks/urls.py)
+urlpatterns = [
+    path('', views.index, name = "list"),
+    path('update_task/<str:pk>/', views.updateTask, name = "update_task") 
+    #the str:pk makes the url dynamic and makes it use the pk provides by the updateTask function pk parameter
+]
+
+4 - update the list.html file
+{% for task in tasks %}
+    <div>
+        <a href = "{% url 'update_task' task.id %}">Update</a> <!-- this is new -->
+            
+        <p>{{task}}</p>
+    </div>
+{% endfor %}
+
+5 - Update views.py to add the form back in when updating
+def updateTask(request, pk):
+    task = Task.objects.get(id=pk)
+
+    form = TaskForm (instance = task) #the instance = task refers to the task variable 2 lines above (this is how it gets the ID number)
+
+    context = {'form':form}
+
+    return render(request, 'tasks/update_task.html', context)
+
+6 - Update the update_task.html file
+<form method = "POST" action = "">
+    {% csrf_token %}
+
+    {{form}}
+    <input type = "submit" name = "Update Task" />
+
+</form>
+
+7 - Update Views.py so that the update actually works (28:41/41:13)
+def updateTask(request, pk):
+    task = Task.objects.get(id=pk)
+
+    form = TaskForm (instance = task) #the instance = task refers to the task variable 2 lines above (this is how it gets the ID number)
+    #this section is new
+    if request.method == 'POST':
+        form = TaskForm (request.POST, instance = task)
+        if form.is_valid():    
+            form.save()
+        return redirect('/')
+    #end new section
+    context = {'form':form}
+
+    return render(request, 'tasks/update_task.html', context)
+
