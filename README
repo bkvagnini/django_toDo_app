@@ -1,4 +1,23 @@
-#From "To Do App Django 3.0.mp4 video"
+#From "To Do App Django 3.0.mp4 video" ( https://www.youtube.com/watch?v=4RWFvXDUmjo )
+https://docs.google.com/document/d/1eu_ImYL21W905howHsyW782BPxKVJp9vz5nlJYB2G2E/edit (these are the notes from this video)
+
+Source Code: https://github.com/divanov11/to-do-app
+
+00:00 - Introduction
+1:40 - Create project
+3:00 - Migrate database & create user
+5:05 - Create app
+5:50 - URL Routing
+8:30 - Templates
+9:45 - Create Model (Task)
+13:25 - Render data (Tasks) in template
+15:10 - Model Form
+19:25 - Create Item
+22:00 - Update Item
+29:20 - Delete Item
+34:45 - Cross out complete items
+36:05 - Style template
+
 >Create Virtual Environment
 python3 -m venv <environment name> (e.g python3 -m venv .django)
 
@@ -230,4 +249,72 @@ def updateTask(request, pk):
     context = {'form':form}
 
     return render(request, 'tasks/update_task.html', context)
+
+>Deleting a task
+1 - create a delete.html file in templates/tasks
+<p> Are you sure you want to delete "{{ item }}"? </p>
+
+<a href ="{% url 'list' %}" > Cancel</a>
+
+2 - update views.py and add a delete function
+def deleteTask(request, pk):
+    return render(request, 'tasks/delete.html')
+
+3 - update app/urls/py (tasks/urls.py) 
+urlpatterns = [
+    path('', views.index, name = "list"),
+    path('update_task/<str:pk>/', views.updateTask, name = "update_task"), 
+    #the str:pk makes the url dynamic and makes it use the pk provides by the updateTask function pk parameter
+    path('deleteTask/<str:pk>/', views.deleteTask, name = "delete") 
+]
+
+4 - Update views.py again
+def deleteTask(request, pk):
+    item = Task.objects.get(id=pk)
+
+    context = {'item':item}
+    return render(request, 'tasks/delete.html', context)
+
+5 - Update list.html
+{% for task in tasks %}
+    <div>
+        <p><a href = "{% url 'update_task' task.id %}">Update</a> 
+        <a href = "{% url 'delete' task.id %}">Delete</a> <!-- this is new -->
+        {{task}}</p>
+    </div>
+{% endfor %}
+
+6 -  Update delete.html file
+<form method = "POST" action = "">
+{% csrf_token %}
+<input type = "submit" name = "Confirm" />
+</form>
+
+7 - Update deleteTask function in views.py (34:30/41:13)
+def deleteTask(request, pk):
+    item = Task.objects.get(id=pk)
+    #this section is new
+    if request.method == 'POST':
+        item.delete()
+        return redirect('/')
+    #end new section
+    context = {'item':item}
+    return render(request, 'tasks/delete.html', context)
+
+8 - Update list.html to include crossing off items that are complete (but not deleting them) (35:55/41:13)
+{% for task in tasks %}
+    <div>
+        <p><a href = "{% url 'update_task' task.id %}">Update</a> 
+        <a href = "{% url 'delete' task.id %}">Delete</a> <!-- this is new -->
+
+        <!-- crossing items off the list  - conditional logic goes here-->
+        {% if task.complete == True  %}
+        <strike>{{task}}</strike>
+        {% else %} 
+        {{task}}</p>
+        {% endif %}
+    </div>
+{% endfor %}
+
+>Styling the app (optional)
 

@@ -4,12 +4,19 @@
     <!-- {{form}} --><!-- brings in all fields -->
     <p> <strong>Add Task: </strong>
     {{form.title}} <!-- brings in just the task field -->
-    <input type = "submit" name = "Create Task" /> </p>
+    <input type = "submit" name = "Create Task" value = "Create Task" /> </p>
 </form>
 
 {% for task in tasks %}
     <div>
-        <p><a href = "{% url 'update_task' task.id %}">Update</a> <!-- this is new -->
+        <p><a href = "{% url 'update_task' task.id %}">Update | </a> 
+        <a href = "{% url 'delete' task.id %}">Delete | </a> <!-- this is new -->
+
+        <!-- crossing items off the list  - conditional logic goes here-->
+        {% if task.complete == True  %}
+        <strike>{{task}}</strike>
+        {% else %} 
         {{task}}</p>
+        {% endif %}
     </div>
 {% endfor %}
